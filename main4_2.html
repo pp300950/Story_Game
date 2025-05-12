@@ -19,7 +19,7 @@
       body {
         margin: 0;
         padding: 0;
-        height: 100%; 
+        /*height: 100%;*/
         width: 100%;
         font-family: 'Segoe UI', sans-serif;
         background-color: black;
@@ -27,7 +27,7 @@
         touch-action: manipulation;
         overflow-x: hidden;
       }
-    
+
       #game,
       #background,
       #name-input-screen {
@@ -42,7 +42,6 @@
         position: relative;
         z-index: 2;
       }
-
 
       #name-input-screen {
         width: 100vw;
@@ -81,13 +80,14 @@
       }
 
       #dialogue-box {
+        max-width: 99%;
         background: rgba(49, 49, 49, 0.85);
         color: #f0f0f0;
         padding: 2rem;
         font-size: 1.5rem;
         box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
         border-top: 4px solid #00bcd4;
-        border-radius: 12px 12px 0 0;
+        border-radius: 12px 12px 12px 12px;
         z-index: 2;
       }
 
@@ -155,7 +155,8 @@
         padding: 2rem;
       }
 
-      @media (max-width: 768px) {
+      @media (max-width: 768px), (pointer: coarse) {
+        /* CSS สำหรับมือถือหรือหน้าจอเล็ก */
         #dialogue-box {
           font-size: 0.7rem;
           padding: 0.7rem;
@@ -182,9 +183,43 @@
         }
         #playerName::placeholder {
           color: white;
-          opacity: 0.8; /* ปรับความโปร่งแสงตามต้องการ */
+          opacity: 0.8;
         }
       }
+      body.force-mobile #dialogue-box {
+        font-size: 0.7rem;
+        padding: 0.7rem;
+      }
+
+      body.force-mobile #dialogue-title {
+        font-size: 0.9rem !important;
+      }
+
+      body.force-mobile .choice,
+      body.force-mobile #next-btn {
+        font-size: 0.7rem;
+        padding: 0.3rem 0.55rem;
+      }
+
+      body.force-mobile #choices {
+        margin-top: 0.2rem;
+        gap: 0.2rem;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      body.force-mobile #playerName {
+        background-color: black;
+        color: white;
+        border: 1px solid white;
+      }
+
+      body.force-mobile #playerName::placeholder {
+        color: white;
+        opacity: 0.8;
+      }
+
       #dialogue-box.collapsed {
         transform: translateY(85%);
       }
@@ -243,9 +278,23 @@
         </button>
       </div>
     </div>
-    <div class="spacer" style="height: 100px;"></div>
+    <div class="spacer" style="height: 100px">.</div>
 
     <script>
+      function isRealDesktop() {
+        const ua = navigator.userAgent;
+        const isMobileUA = /Mobi|Android|iPhone|iPad/i.test(ua);
+        const isTouch = window.matchMedia('(pointer: coarse)').matches;
+        const screenWidth = window.innerWidth;
+
+        // ถ้ามี userAgent แบบมือถือ, ใช้จอสัมผัส และความกว้างไม่มาก แปลว่า "ไม่ใช่คอม"
+        if (isMobileUA || (isTouch && screenWidth <= 1024)) {
+          document.body.classList.add('force-mobile');
+        }
+      }
+
+      window.addEventListener('DOMContentLoaded', isRealDesktop);
+
       function setVhUnit() {
         const vh = window.innerHeight * 0.01;
         document.documentElement.style.setProperty('--vh', `${vh}px`);
@@ -253,22 +302,17 @@
 
       window.addEventListener('resize', setVhUnit);
       window.addEventListener('load', setVhUnit);
-    </script>
 
-    <script>
-      function checkOrientation() {
+      // แสดง rotate-warning ทันทีที่โหลดหน้า
+      window.addEventListener('load', () => {
         const warning = document.getElementById('rotate-warning');
-        const isMobile = /Mobi|Android/i.test(navigator.userAgent);
-        if (isMobile && window.innerHeight > window.innerWidth) {
-          warning.style.display = 'flex'; // แนวตั้ง
-        } else {
-          warning.style.display = 'none'; // แนวนอน
-        }
-      }
+        warning.style.display = 'flex';
 
-      window.addEventListener('load', checkOrientation);
-      window.addEventListener('resize', checkOrientation);
-      window.addEventListener('orientationchange', checkOrientation);
+        // ซ่อน rotate-warning อัตโนมัติหลังจาก 3 วินาที
+        setTimeout(() => {
+          warning.style.display = 'none';
+        }, 3000);
+      });
 
       const dialogueData = [
         {
@@ -368,7 +412,7 @@
           choices: [
             {
               text: 'ถ้าเช่นนั้นคุณช่วยบอกได้หรือไม่ถึงเหตุผลที่เซเนียร์ลักลอบขนอาวุธ จากประเทศของเราไปที่เซเนียร์',
-              next: '',
+              next: 'event2-1-1-1-3',
             },
             {
               text: 'หยิบหน้ากากลงอาคมขึ้นมาใส่เเละสวดเพื่อขอให้ผีช่วยให้การเจรจาครั้งนี้สำเร็จ',
@@ -381,6 +425,19 @@
           ],
         },
         {
+          id: 'event2-1-1-1-3',
+          title: 'เจฟได้กล่าวว่า',
+          text: '',
+          background: 'Pic/talk.jpeg',
+          choices: [
+            {
+              text: '',
+              next: '',
+            },
+          
+          ],
+        },
+        {
           id: 'event2-1-1-1-2',
           title: 'เจฟนั่งดูคุณพูดคนเดียวสักพัก',
           text: 'โอเคร... ดูเหมือนคุณจะเชื่อเรื่องเหนือธรรมชาติ เเต่จำเป็นต้องทำต่อหน้าผมเลยหรอ?',
@@ -390,7 +447,6 @@
               text: 'ถัดไป',
               next: 'event2-1-1-1-2-1',
             },
-           
           ],
         },
         {
@@ -403,7 +459,6 @@
               text: 'ถัดไป',
               next: '',
             },
-           
           ],
         },
         {
@@ -520,7 +575,10 @@
               text: 'กล่าวถามถึงเหตุผล ของการลักลอบขนส่งอาวุธข้ามพรมแดนกับอีกอันนา',
               next: 'event1-1-1',
             },
-            { text: 'ชมว่าเธอสวยมากเลยก่อนจะขอเบอร์ของเธอ เเละชวนเธอออกเดท ชั่งเรื่องงาน', next: 'event1-1-2' },
+            {
+              text: 'ชมว่าเธอสวยมากเลยก่อนจะขอเบอร์ของเธอ เเละชวนเธอออกเดท ชั่งเรื่องงาน',
+              next: 'event1-1-2',
+            },
             {
               text: 'ขู่อันนาว่าหากพวกเรายังพบเห็นประเทศพวกคุณทำลับๆล่อๆ บริเวณเขตเเดนระหว่างประเทศของเรา เราจะเลิกขายไฟฟ้าให้เเก่ประเทศคุณ!',
               next: 'event1-1-3',
@@ -529,7 +587,8 @@
         },
         {
           id: 'event1-1-2',
-          title: 'อันนารู้สึกถูกคุมคามจากการกระทำของคุณเธอจึงเรียก หน่วยรักษาความปลอดภัยหน้าห้องมา',
+          title:
+            'อันนารู้สึกถูกคุมคามจากการกระทำของคุณเธอจึงเรียก หน่วยรักษาความปลอดภัยหน้าห้องมา',
           text: 'ก่อนจะมีผู้ชายคนนึ่งท่าทางเข้มขึงเดินตรงเข้ามาในห้องเเละกระชากคอเสื้อคุณขึ้น คุณโดนเข้าไปหมัดนึ่งจังๆที่ตาขวาก่อนหมดสติไป',
           background: 'Pic/boyfriend.jpeg',
           choices: [
@@ -537,10 +596,9 @@
               text: 'ต่อไป',
               next: '',
             },
-           
           ],
         },
-        
+
         {
           id: 'event1-1-3',
           title: 'อันนาจึงตอบกลับว่า',
@@ -555,6 +613,7 @@
         },
         {
           id: 'event1-1-3-1',
+          title: 'ณ ที่ร้านอาหาร',
           text: 'คุณใช้โอกาสนี้ในการถามอันนา เกี่ยวกับข้อมูลทางการเมืองของเซเนียร์จากอันนา เเละได้ทราบว่าที่เซเนียร์เองในตอนนี้มีประเทศอย่าง ประเทศชินิส คอยหนุนหลังอยู่ รอเสียบทันทีที่ประเทศของคุณเลิกขายไฟฟ้าให้เเก่เซเนียร์',
           background: 'Pic/bar.jpeg',
           choices: [
@@ -577,7 +636,7 @@
         },
         {
           id: 'event1-1-3-1.1-1#1',
-          text: 'เมื่อคุณเริ่มรู้สึกว่าเรื่องเหล่านี้มันเเปลกๆ คุณก็เลยเนียนขอเบอร์อันนาเอาไว้ก่อนพวกคุณจะเเยกย้ายกัน',
+          text: 'เมื่อคุณเริ่มรู้สึกว่าเรื่องเหล่านี้มันมีบางอย่างเเปลกๆ คุณก็เลยเนียนขอเบอร์อันนาเอาไว้ ก่อนพวกคุณจะเเยกย้ายกัน',
           background: 'Pic/bar.jpeg',
           choices: [
             {
@@ -586,9 +645,6 @@
             },
           ],
         },
-
-
-
 
         {
           id: 'event1-1-3-1.1-1',
@@ -657,7 +713,69 @@
             },
             {
               text: 'เริ่มการสืบสวนเจอร์มี่อย่างลับๆ',
-              next: '',
+              next: 'event1-2-1.1-2',
+            },
+          ],
+        },
+        {
+          id: 'event1-2-1.1-2',
+          title: 'จากการสืบสวนคุณพบว่า',
+          text: 'เจอร์มี่นั้นเกิดที่ประเทศ ชินีส เเต่หลังจากพ่อเเม่เขาเสียจากสงครามกลางเมืองในชินีส เจอร์มี่จึงย้ายมาทำงานที่ประเทศของคุณเเทน',
+          background: 'Pic/findDetailJermi.jpeg',
+          choices: [
+            {
+              text: 'ถัดไป',
+              next: 'event1-2-1.1-2-1',
+            },
+           
+          ],
+        },
+        {
+          id: 'event1-2-1.1-2-1',
+          title: 'เเละคุณยังสืบสวนพบอีกว่า',
+          text: 'ในเหตุการที่เจอร์มี่เจรจาขายบางส่วนของประเทศให้เซเนียร์ เค้ากลับได้ดิบได้ดีเเทนที่จะถูกประนาม เนื่องจากรัฐบาลของประเทศคุณพอใจกับเงินที่ได้จากการขายประเทศมาก ทุกคนจึงยินดีที่จะให้เจอร์มี่เป็นทูตหลักของประเทศ',
+          background: 'Pic/findDetailJermi.jpeg',
+          choices: [
+            {
+              text: 'ถัดไป',
+              next: 'event1-2-1.1-2-1-1',
+            },
+           
+          ],
+        },
+        {
+          id: 'event1-2-1.1-2-1-1',
+          text: 'เเม้คุณจะรู้ดีว่ามีพวกโจรขายชาตินั่งอยู่ในตำเเหน่งผู้บริหารเเผ่นดิน เเต่คุณในตอนนี้ก็ไม่สามารถทำอะไรเค้าได้อีกเเล้ว',
+          background: 'Pic/findDetailJermi.jpeg',
+          choices: [
+            {
+              text: 'ถัดไป',
+              next: 'event1-2-1.1-2-1-1*1',
+            },
+           
+          ],
+        },
+        {
+          id: 'event1-2-1.1-2-1-1*1',
+          text: 'เเละหลังจากนั้น5ปี เจอร์มี่ถูกส่งไปเจรจากับผู้นำของประเทศชินีส ด้วยที่มีความเเค้นกับประเทศชินีสในเหตุที่พ่อเเม่เค้าเสีย เจอร์มี่จึงเจรจาเริ่มทำสงครามกำกับชินีสทันที หลังกลับประเทศเจอร์มี่ถูกด่าอย่างรุนเเรงจากรัฐบาล',
+          background: 'Pic/war.jpeg',
+          choices: [
+            {
+              text: 'ถัดไป',
+              next: 'event1-2-1.1-2-1-1*1-1',
+            },
+           
+          ],
+        },
+        {
+          id: 'event1-2-1.1-2-1-1*1-1',
+          title: '2ปีหลังจากประเทศคุณประกาศสงครามกับชินีส',
+          text: 'สุดท้ายประเทศของคุณก็ได้ประกาศเเพ้สงคราม เนื่องจากสู้สงครามสองทิศทั้งจากชินีสเเละเซเนียร์ที่เป็นประเทศลูกของชินีสไม่ไหว',
+          background: 'Pic/built.jpeg',
+          choices: [
+            {
+              text: 'ถัดไป',
+              next: 'ending1',
             },
           ],
         },
@@ -691,7 +809,166 @@
           choices: [
             {
               text: 'คุณมองอันนาด้วยสายตาที่รู้สึกสงสัย',
-              next: '',
+              next: 'event1-1-1.1*1',
+            },
+          ],
+        },
+        {
+          id: 'event1-1-1.1*1',
+          text: 'เช่นนั้นหากอันนาพูดจริง อาวุธที่เค้าบอกว่ามีการซื้อขายกัน อาวุธเหล่านั้นได้มาจากไหน ในขณะนี้คุณมีความสงสัยภายในหัวเต็มไปหมด',
+          background: 'Pic/think2.jpeg',
+          choices: [
+            {
+              text: 'ถัดไป',
+              next: 'event1-1-1.1*1-1',
+            },
+          ],
+        },
+        {
+          id: 'event1-1-1.1*1-1',
+          text: 'อันนาเห็นคุณกำลังทำท่าทางคิดบางอย่างอยู่ จึงเดินไปชงกาเเฟมาให้คุณดื่ม',
+          background: 'Pic/coffe.jpeg',
+          choices: [
+            {
+              text: 'ดื่มสักหน่อยอาจจะทำให้คิดอะไรออกบ้าง',
+              next: 'event1-1-1.1*1-1/2',
+            },
+            {
+              text: 'ไม่ดื่ม เผื่ออันนาวางยาพิษทำไง',
+              next: 'event1-1-1.1*1-1/1',
+            },
+          ],
+        },
+        {
+          id: 'event1-1-1.1*1-1/2',
+          title: 'คุณสำลักน้ำกาเเฟที่ดื่มไป!!',
+          text: 'คุณมีสองทางเลือก จะพยายามกลืนมันลงไปหรือสำลอกออกมา',
+          background: 'Pic/cafestuck.jpeg',
+          choices: [
+            {
+              text: 'กลืนกาเเฟลงไป',
+              next: 'event1-1-1.1*1-1/2-2',
+            },
+            {
+              text: 'พยายามสำลอกกาเเฟออกมา',
+              next: 'event1-1-1.1*1-1/2-1',
+            },
+          ],
+        },
+        {
+          id: 'event1-1-1.1*1-1/2-2',
+          title: 'กาเเฟที่อันนาชงให้คุณอร่อยมาก',
+          text: 'หลังจากนั้นพวกคุณได้คุยกันต่ออีกสักพัก ก่อนที่อันนาจะชวนคุณไปคุยต่อที่ร้านอาหารเเทน',
+          background: 'Pic/cafe3.jpeg',
+          choices: [
+            {
+              text: 'ตอบตกลงในทันที',
+              next: 'event1-1-3-1',
+            },
+            {
+              text: 'ตอบอันนาไปว่าไม่ค่อยว่าง (เล่นตัวนิดนึงๆ)',
+              next: 'event1-1-1.1*1-1/2-2-1',
+            },
+          
+          ],
+        },
+        {
+          id: 'event1-1-1.1*1-1/2-2-1',
+          text: 'ด้วยการที่คุณปฏิเสธที่จะคุยกับอันนาที่ร้านอาหาร เธอจึงนั่งคุยกับคุณต่ออีก6ชั่งโมง เกี่ยวกับการหาทางออกที่ทำให้ทั้งสองประเทศสบายใจกันไปก่อน เเม้จะยังไม่ทราบเเน่ชัดว่าเกิดอะไรขึ้นกันเเน่ที่บริเวณชายเเดน',
+          background: 'Pic/cute_person.jpeg',
+          choices: [
+            {
+              text: 'ถัดไป',
+              next: 'event1-1-1.1*1-1/2-2-1*1',
+            },
+          ],
+        },
+        {
+          id: 'event1-1-1.1*1-1/2-2-1*1',
+          title:'ระหว่างคุยกันคุณรู้สึกเบื่อมาก',
+          text: 'คุณจึงขอให้อันนาช่วยสักลายให้ที่เเขนซ้ายระหว่างสนทนากันไปด้วย โดยให้สักเป็นรูปหน้าอันนาเลย',
+          background: 'Pic/drawe.jpeg',
+          choices: [
+            {
+              text: 'ถัดไป',
+              next: 'event1-1-1.1*1-1/2-2-1*1*1',
+            },
+          ],
+        },
+        {
+          id: 'event1-1-1.1*1-1/2-2-1*1*1',
+          text: 'เเต่ด้วยที่คุณนั่งนานเกินไปทำให้ขาของคุณเป็นเหน็บชา คุณที่ทนความเจ็บปวดนี้ไม่ได้จึงเสียชีวิตต่อหน้าอันนาที่ยังสักลายบนเเขนคุณยังไม่เสร็จเลยด้วยซ้ำ',
+          background: 'Pic/leg.jpeg',
+          choices: [
+            {
+              text: 'เป็นเหน็บชาตายเนี่ยนะ บ้าบอ ชมัด!',
+              next: 'ending3',
+            },
+          ],
+        },
+        {
+          id: 'event1-1-1.1*1-1/2-1',
+          text: 'สุดท้ายกาเเฟที่อันนาชงให้คุณ คุณก็ไม่ได้ดื่มมันเลย เพระาสำลอกออกหมด',
+          background: 'Pic/sleep.jpeg',
+          choices: [
+            {
+              text: 'ถัดไป',
+              next: 'event1-1-1.1*1-1/1',
+            },
+          ],
+        },
+        {
+          id: 'event1-1-1.1*1-1/1',
+          text: 'จู่ๆคุณก็รู้สึกหน้ามืดก่อนหมดสติลง',
+          background: 'Pic/sleep.jpeg',
+          choices: [
+            {
+              text: 'ถัดไป',
+              next: 'event1-1-1.1*1-1/1*1',
+            },
+          ],
+        },
+        {
+          id: 'event1-1-1.1*1-1/1*1',
+          text: 'คุณเผลอหลับไปในขณะที่กำลังคุยกับอันนา เนื่องจากไม่ได้ดื่มกาเเฟ',
+          background: 'Pic/sleep.jpeg',
+          choices: [
+            {
+              text: 'ถัดไป',
+              next: 'event1-1-1.1*1-1/1*1-1',
+            },
+          ],
+        },
+        {
+          id: 'event1-1-1.1*1-1/1*1-1',
+          text: 'หลังจากนั้นคุณก็ไม่ตื่นอีกเลย ตำรวจที่มาสืบสวนพบว่าสาเหตุการเสียชีวิตของคุณเกิดจากอาการไหลตาย เนื่องจากร่างกายขาด คาเฟอีน',
+          background: 'Pic/deat.jpeg',
+          choices: [
+            {
+              text: 'บ้าน่า ชั้นตายหรอเนี่ย! ไหลตายด้วย บ้าเอ้ย',
+              next: 'ending3',
+            },
+          ],
+        },
+        {
+          id: 'ending3',
+          text: 'เรื่องราวของคุณจบลงที่นี่ ขอให้ท่านไปสู่สุขคติ',
+          background: 'Pic/ghoat.jpeg',
+          choices: [
+            {
+              text: 'ดูข้อมูลผู้สร้าง',
+              next: 'go-to-credits',
+            },
+          ],
+        },
+        {
+          id: 'ending1',
+          text: 'เรื่องราวของคุณจบลงที่นี่ ขอบคุณที่ร่วมผจญภัยกับเรา!',
+          background: 'Pic/test.jpeg',
+          choices: [
+            {
+              text: 'ดูข้อมูลผู้สร้าง',
+              next: 'go-to-credits',
             },
           ],
         },
@@ -811,7 +1088,7 @@
           if (images.length > 1) {
             bg.removeChild(images[0]); // ลบภาพก่อนหน้า
           }
-        }, 1600); // รอเวลา fade ครบ
+        }, 1600);
       }
 
       function loadNode(id) {
@@ -873,6 +1150,7 @@
           loadNode(nextNodeId);
         }
       }
+
     </script>
   </body>
 </html>
